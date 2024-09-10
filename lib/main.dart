@@ -12,11 +12,6 @@ Future<bool> checkInternetConnection() async {
 }
 
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://buguxhaiqootukcsttkp.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1Z3V4aGFpcW9vdHVrY3N0dGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjIzOTQyNTUsImV4cCI6MjAzNzk3MDI1NX0.FAI35VhAaB-aNuPGPCTr0oFWkAWAkttn5PpKiu9Wi6M',
-  );
   runApp(
     ChangeNotifierProvider(
       create: (_) => FormValidasi(),

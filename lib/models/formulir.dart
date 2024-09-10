@@ -5,67 +5,56 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class FormSubmission {
-  final int? id;
-  final int? jenisId;
   final String nama;
   final String email;
   final String nohp;
-  final String deskripsi;
-  final String? webLink;
-  final String? upload;
-  final String? status;
-  final String tiketNo;
+  final String uraian;
+  final String? link;
+  final String? foto;
+  final String? tiket_no;
 final DateTime createdAt;
 
   FormSubmission({
-    this.id,
-    this.jenisId,
     required this.nama,
     required this.email,
     required this.nohp,
-    required this.deskripsi,
-    this.webLink,
-    this.upload,
-    this.status,
-    required this.tiketNo,
+    required this.uraian,
+    this.link,
+    this.foto,
+    this.tiket_no,
    required this.createdAt,
   });
 
   factory FormSubmission.fromJson(Map<String, dynamic> json) {
     return FormSubmission(
-      id: json['id'],
-      jenisId: json['jenis_id'],
       nama: json['nama'],
       email: json['email'],
       nohp: json['nohp'],
-      deskripsi: json['deskripsi'],
-      webLink: json['web_link'],
-      upload: json['upload'],
-      status: json['status'],
-      tiketNo: json['tiket_no'],
+      uraian: json['uraian'],
+      link: json['web_link'],
+      foto: json['foto'],
+      tiket_no: json['tiket_no'],
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(), // Default to now if null
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'jenis_id': jenisId,
+  
       'nama': nama,
       'email': email,
       'nohp': nohp,
-      'deskripsi': deskripsi,
-      'web_link': webLink,
-      'upload': upload,
-      'status': status,
-      'tiket_no': tiketNo,
+      'uraian': uraian,
+      'web_link': link,
+      'foto': foto,
+      'tiket_no': tiket_no,
       'created_at': createdAt?.toIso8601String(),
     };
   }
 
   @override
   String toString() {
-    return 'FormSubmission(id: $id, jenisId: $jenisId, nama: $nama, email: $email, nohp: $nohp, deskripsi: $deskripsi, webLink: $webLink, upload: $upload, status: $status, tiketNo: $tiketNo, createdAt: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(createdAt)})';
+    return 'FormSubmission(nama: $nama, email: $email, nohp: $nohp, uraian: $uraian, link: $link, foto: $foto, tiket_no: $tiket_no, createdAt: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(createdAt)})';
   }
 }
 

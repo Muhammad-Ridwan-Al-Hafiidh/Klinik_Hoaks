@@ -1,11 +1,8 @@
-import 'dart:convert';
-
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:klinik_hoaks/models/artikel.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:klinik_hoaks/view/article/detail_artikel.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:klinik_hoaks/models/search.dart';
 import 'package:klinik_hoaks/view/home/List_artikel.dart';
+import 'package:klinik_hoaks/view/home/webview.dart';
 import 'package:klinik_hoaks/view/main_screen/main_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,31 +13,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Artikel> artikelList = [];
-
-  Future<void> fetchArtikelData() async {
-  try {
-    final response = await Supabase.instance.client
-        .from('artikel')
-        .select();
-
-    if (response != null && response is List) {
-      setState(() {
-        artikelList = response.map((item) => Artikel.fromJson(item as Map<String, dynamic>)).toList();
-      });
-    } else {
-      throw Exception('Invalid data received from Supabase');
-    }
-  } catch (e) {
-    print('Error fetching artikel data: $e');
-    // You might want to show an error message to the user here
-  }
-}
+  late Future<List<Artikel>> _carouselArticles;
+  late Future<List<Artikel>> _klarifikasiArticles;
 
   @override
   void initState() {
     super.initState();
-    fetchArtikelData();
+    _carouselArticles = _fetchCarouselArticles();
+    _klarifikasiArticles = _fetchKlarifikasiArticles();
+  }
+
+  Future<List<Artikel>> _fetchCarouselArticles() async {
+    final articles = await ArtikelService().fetchArticles();
+    return articles.take(5).toList(); // Fetch and limit to 5 articles
+  }
+
+  Future<List<Artikel>> _fetchKlarifikasiArticles() async {
+    final articles = await ArtikelService().fetchArticles();
+    return articles; // Fetch all articles
+  }
+
+  void _launchURL(String slugPath) {
+    final encodedSlugPath = Uri.encodeComponent(slugPath);
+    final url = 'https://demo-klinikhoaks.jatimprov.go.id/post/$encodedSlugPath#blogdetail';
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => WebViewPage(url: url)),
+    );
   }
 
   @override
@@ -53,7 +52,7 @@ class _HomePageState extends State<HomePage> {
         title: InkWell(
           onTap: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => MainScreen()),
+              MaterialPageRoute(builder: (context) => const MainScreen()),
             );
           },
           child: Row(
@@ -64,7 +63,7 @@ class _HomePageState extends State<HomePage> {
                 width: 50,
                 height: 50,
               ),
-              Text(
+              const Text(
                 'Klinik Hoaks',
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
@@ -78,9 +77,9 @@ class _HomePageState extends State<HomePage> {
           // Frame banner
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(10),
-            color: Color.fromRGBO(0, 131, 116, 1.000),
-            child: Text(
+            padding: const EdgeInsets.all(10),
+            color: const Color.fromRGBO(0, 131, 116, 1.000),
+            child: const Text(
               'Selamat datang di Klinik Hoaks Jawa Timur',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
@@ -94,96 +93,93 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           'Informasi Terbaru',
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(height: 10),
-                      // Your carousel code here
-                      //  Container(
-//                         margin: EdgeInsets.symmetric(horizontal: 0.0),
-//                         child: CarouselSlider(
-//                           options: CarouselOptions(
-//                             autoPlay: true,
-//                             autoPlayInterval: Duration(seconds: 3),
-//                             height: 160,
-//                             enlargeCenterPage: true,
-//                             enableInfiniteScroll: true,
-//                           ),
-//                           items: klarifikasiData.take(3).map((item) {
-//                             return Builder(
-//                               builder: (BuildContext context) {
-//                                 return Container(
-//                                   width: MediaQuery.of(context).size.width,
-//                                   margin: EdgeInsets.symmetric(horizontal: 5.0),
-//                                   decoration: BoxDecoration(
-//                                     borderRadius: BorderRadius.circular(8.0),
-                                   
-//                                   ),
-//                                   child: InkWell(
-//                                     onTap: () {
-//                                       Navigator.push(context, MaterialPageRoute(builder: (context) => DetailArtikel()));
-//                                     },
-//                                     child: Container(
-//                                       decoration: BoxDecoration(
-//                                         borderRadius: BorderRadius.circular(8.0),
-//                                         gradient: LinearGradient(
-//                                           begin: Alignment.topCenter,
-//                                           end: Alignment.bottomCenter,
-//                                           colors: [
-//                                             Colors.transparent,
-//                                             Color.fromRGBO(0, 131, 116, 1.000).withOpacity(0.9),
-//                                           ],
-//                                         ),
-//                                       ),
-//                                       child: Padding(
-//                                         padding: const EdgeInsets.all(8.0),
-//                                         child: Column(
-//                                           mainAxisAlignment: MainAxisAlignment.center,
-//                                           crossAxisAlignment: CrossAxisAlignment.start,
-//                                           children: [
-//                                             Center(
-//                                               child: Image.asset(
-//                                                 'assets/fakta.png',
-//                                                 width: 160,
-//                                               ),
-//                                             ),
-//                                             Text(
-//                                               item.nama,
-//                                               style: TextStyle(
-//                                                 color: Colors.white,
-//                                                 fontSize: 18,
-//                                                 fontWeight: FontWeight.bold,
-//                                               ),
-//                                             ),
-//                                             SizedBox(height: 2),
-//                                             Text(
-//                                                item.nama,
-//                                               style: TextStyle(
-//                                                 color: Colors.white,
-//                                                 fontSize: 14,
-//                                               ),
-//                                             ),
-//                                           ],
-//                                         ),
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 );
-//                               },
-//                             );
-//                           }).toList(),
-//                         ),
-//                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 10),
+                      FutureBuilder<List<Artikel>>(
+                        future: _carouselArticles,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text('No articles found'));
+                          } else {
+                            return CarouselSlider(
+                              options: CarouselOptions(
+                                autoPlay: true,
+                                autoPlayInterval: const Duration(seconds: 3),
+                                height: 160,
+                                enlargeCenterPage: true,
+                                enableInfiniteScroll: true,
+                              ),
+                              items: snapshot.data!.map((item) {
+                                return Builder(
+                                  builder: (BuildContext context) {
+                                    return Container(
+                                      width: MediaQuery.of(context).size.width,
+                                      margin: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 1),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: NetworkImage(item.image),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      child: InkWell(
+                                        onTap: () {
+                                          _launchURL(item.slugPath); // Use slugPath for URL
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8.0),
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Colors.transparent,
+                                                const Color.fromRGBO(0, 131, 116, 1.000).withOpacity(0.9),
+                                              ],
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  item.judul,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Semua Klarifikasi',
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -193,96 +189,93 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => ListArtikel()),
+                                MaterialPageRoute(builder: (context) => const ListArtikel()),
                               );
                             },
-                            child: Icon(Icons.arrow_forward_outlined),
+                            child: const Icon(Icons.arrow_forward_outlined),
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: artikelList.length,
-                        itemBuilder: (context, index) {
-                          final artikel = artikelList[index];
-                          return ListTile(
-                            title: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => DetailArtikel()));
-                                },
-                                child: Card(
-                                  child: Container(
-                                    width: screenWidth * 0.9,
-                                    height: screenHeight * 0.2,
-                                    child: Stack(
-                                      children: [
-                                        // Image layer
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8.0),
-                                            image: DecorationImage(
-                                              image: NetworkImage(artikel.image),
-                                              fit: BoxFit.cover,
+                      const SizedBox(height: 10),
+                      FutureBuilder<List<Artikel>>(
+                        future: _klarifikasiArticles,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text('No klarifikasi found'));
+                          } else {
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                final item = snapshot.data![index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                  child: InkWell(
+                                    onTap: () {
+                                      _launchURL(item.slugPath); // Use slugPath for URL
+                                    },
+                                    child: Card(
+                                      child: Container(
+                                        width: screenWidth * 0.9,
+                                        height: screenHeight * 0.2,
+                                        child: Stack(
+                                          children: [
+                                            // Image layer
+                                            Container(
+                                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(8.0),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(item.image),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                        // Gradient layer
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8.0),
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Colors.transparent,
-                                                Color.fromRGBO(0, 131, 116, 1.000).withOpacity(0.9),
-                                              ],
+                                            // Gradient layer
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(8.0),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                    const Color.fromRGBO(0, 131, 116, 1.000).withOpacity(0.9),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                            // Content layer
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    item.judul,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        // Content layer
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Center(
-                                                child: Image.asset(
-                                                  'assets/fakta.png',
-                                                  width: 160,
-                                                ),
-                                              ),
-                                              Text(
-                                                artikel.title,
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              SizedBox(height: 2),
-                                              Text(
-                                                artikel.uraian,
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          );
+                                );
+                              },
+                            );
+                          }
                         },
                       ),
                     ],

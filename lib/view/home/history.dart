@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:klinik_hoaks/models/search.dart';
 
 class Rekap extends StatefulWidget {
   const Rekap({super.key});
@@ -23,41 +23,78 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
   late Animation<int> _animationHateSpeech;
 
   String selectedYear = '2024';
+  int countHoaks = 0;
+  int countDisinformasi = 0;
+  int countFakta = 0;
+  int countHateSpeech = 0;
+
+  final ArtikelService artikelService = ArtikelService();
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize controllers
     _controllerHoaks = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    _animationHoaks = IntTween(begin: 0, end: 1852).animate(_controllerHoaks);
-
     _controllerDisinformasi = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    _animationDisinformasi =
-        IntTween(begin: 0, end: 1037).animate(_controllerDisinformasi);
-
     _controllerFakta = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    _animationFakta = IntTween(begin: 0, end: 822).animate(_controllerFakta);
-
     _controllerHateSpeech = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    _animationHateSpeech =
-        IntTween(begin: 0, end: 721).animate(_controllerHateSpeech);
 
-    _controllerHoaks.forward();
-    _controllerDisinformasi.forward();
-    _controllerFakta.forward();
-    _controllerHateSpeech.forward();
+    // Initialize animations with default values
+    _animationHoaks = IntTween(begin: 0, end: 0).animate(_controllerHoaks);
+    _animationDisinformasi = IntTween(begin: 0, end: 0).animate(_controllerDisinformasi);
+    _animationFakta = IntTween(begin: 0, end: 0).animate(_controllerFakta);
+    _animationHateSpeech = IntTween(begin: 0, end: 0).animate(_controllerHateSpeech);
+
+    // Fetch data
+    fetchArticleData();
+  }
+
+  Future<void> fetchArticleData() async {
+    try {
+      List<Artikel> articles = await artikelService.fetchArticles();
+
+      setState(() {
+        countHoaks = articles
+            .where((article) => article.judul.contains('Hoaks'))
+            .length;
+        countDisinformasi = articles
+            .where((article) => article.judul.contains('Disinformasi'))
+            .length;
+        countFakta = articles
+            .where((article) => article.judul.contains('Fakta'))
+            .length;
+        countHateSpeech = articles
+            .where((article) => article.judul.contains('Hate Speech'))
+            .length;
+
+        // Update the animations based on the new data
+        _animationHoaks = IntTween(begin: 0, end: countHoaks).animate(_controllerHoaks);
+        _animationDisinformasi = IntTween(begin: 0, end: countDisinformasi).animate(_controllerDisinformasi);
+        _animationFakta = IntTween(begin: 0, end: countFakta).animate(_controllerFakta);
+        _animationHateSpeech = IntTween(begin: 0, end: countHateSpeech).animate(_controllerHateSpeech);
+
+        // Start the animation
+        _controllerHoaks.forward();
+        _controllerDisinformasi.forward();
+        _controllerFakta.forward();
+        _controllerHateSpeech.forward();
+      });
+    } catch (e) {
+      print("Error fetching articles: $e");
+    }
   }
 
   @override
@@ -85,7 +122,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Rekap Klarifikasi Informasi',
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
@@ -99,116 +136,13 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
               Card(
                 elevation: 15,
                 child: Container(
-                    decoration: BoxDecoration(shape: BoxShape.rectangle),
+                    decoration: const BoxDecoration(shape: BoxShape.rectangle),
                     width: screenWidth * 0.7,
                     height: screenHeight * 0.2,
                     child: Image.asset(
                       'assets/rekap.png',
                       fit: BoxFit.fill,
                     )),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Card(
-                  child: Container(
-                    width: screenWidth * 0.9,
-                    height: screenHeight * 0.1,
-                    color: Colors.white,
-                    child: Column(
-                      children: [
-                        Text('Pilih Tahun:',style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
-                        DropdownButtonHideUnderline(
-                          child: DropdownButton2<String>(
-                            isExpanded: true,
-                            hint: const Row(
-                              children: [
-                                Icon(
-                                  Icons.list,
-                                  size: 16,
-                                  color: Colors.yellow,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Silahkan memilih tahun',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.yellow,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            items: years
-                            .map((String years) => DropdownMenuItem<String>(
-                                      value: years,
-                                      child: Text(
-                                        years,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            value: selectedValue,
-                            onChanged: (value) {
-                              setState(() {
-                                  selectedValue = value;
-                                });
-                            },
-                            buttonStyleData: ButtonStyleData(
-                              height: 50,
-                              width: 300,
-                              padding:
-                                  const EdgeInsets.only(left: 14, right: 14),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: Colors.black26,
-                                ),
-                                color: Color.fromRGBO(0, 131, 116, 1.000),
-                              ),
-                              elevation: 2,
-                            ),
-                            iconStyleData: const IconStyleData(
-                              icon: Icon(
-                                Icons.arrow_forward_ios_outlined,
-                              ),
-                              iconSize: 14,
-                              iconEnabledColor: Colors.yellow,
-                              iconDisabledColor: Colors.grey,
-                            ),
-                            dropdownStyleData: DropdownStyleData(
-                              maxHeight: 200,
-                              width: 200,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                color: Color.fromRGBO(0, 131, 116, 1.000),
-                              ),
-                              offset: const Offset(-20, 0),
-                              scrollbarTheme: ScrollbarThemeData(
-                                radius: const Radius.circular(40),
-                                thickness: MaterialStateProperty.all(6),
-                                thumbVisibility:
-                                    MaterialStateProperty.all(true),
-                              ),
-                            ),
-                            menuItemStyleData: const MenuItemStyleData(
-                              padding: EdgeInsets.only(left: 14, right: 14),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
               Padding(
                 padding:
@@ -232,7 +166,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                 builder: (context, child) {
                                   return Text(
                                     '${_animationHoaks.value}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 40,
                                         fontWeight: FontWeight.bold,
                                         color:
@@ -240,7 +174,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                   );
                                 },
                               ),
-                              Text(
+                              const Text(
                                 'Hoaks',
                                 style: TextStyle(
                                     fontSize: 20,
@@ -268,7 +202,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                 builder: (context, child) {
                                   return Text(
                                     '${_animationDisinformasi.value}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 40,
                                         fontWeight: FontWeight.bold,
                                         color:
@@ -276,7 +210,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                   );
                                 },
                               ),
-                              Text(
+                              const Text(
                                 'Disinformasi',
                                 style: TextStyle(
                                     fontSize: 20,
@@ -313,7 +247,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                 builder: (context, child) {
                                   return Text(
                                     '${_animationFakta.value}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 40,
                                         fontWeight: FontWeight.bold,
                                         color:
@@ -321,7 +255,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                   );
                                 },
                               ),
-                              Text(
+                              const Text(
                                 'Fakta',
                                 style: TextStyle(
                                     fontSize: 20,
@@ -349,7 +283,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                 builder: (context, child) {
                                   return Text(
                                     '${_animationHateSpeech.value}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 40,
                                         fontWeight: FontWeight.bold,
                                         color:
@@ -357,7 +291,7 @@ class _RekapState extends State<Rekap> with TickerProviderStateMixin {
                                   );
                                 },
                               ),
-                              Text(
+                              const Text(
                                 'Hate Speech',
                                 style: TextStyle(
                                     fontSize: 20,
