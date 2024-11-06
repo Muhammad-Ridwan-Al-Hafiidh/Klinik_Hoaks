@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import 'package:klinik_hoaks/models/formulir.dart';
 import 'package:klinik_hoaks/view/main_screen/main_screen.dart';
@@ -37,47 +38,62 @@ class _FormInfoState extends State<FormInfo> {
     );
   }
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-    );
-
+ Future<void> _pickFile() async {
+    // Check if permission is granted, if not, request it
+     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  
+  if (image != null) {
     setState(() {
-      if (result != null) {
-        _selectedFile = File(result.files.single.path!);
-        _fileType = result.files.single.extension?.toLowerCase();
-        _formData = FormSubmission(
-          nama: _formData.nama,
-          email: _formData.email,
-          nohp: _formData.nohp,
-          uraian: _formData.uraian,
-          link: _formData.link,
-          foto: _selectedFile?.path,
-          createdAt: _formData.createdAt, // Retain the original createdAt
-        );
-      }
+      _selectedFile = File(image.path);
+      _fileType = 'jpg'; // or 'png' based on image type
+      _formData = FormSubmission(
+        nama: _formData.nama,
+        email: _formData.email,
+        nohp: _formData.nohp,
+        uraian: _formData.uraian,
+        link: _formData.link,
+        foto: _selectedFile?.path,
+        createdAt: _formData.createdAt,
+      );
     });
+  } else {
+    print('No image selected.');
+  }
   }
 
   Future<void> _captureImageFromCamera() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    // Check if camera permission is granted, if not, request it
+    if (await _requestCameraPermission()) {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
 
-    if (image != null) {
-      setState(() {
-        _selectedFile = File(image.path);
-        _fileType = 'jpg'; // Assume it's a jpg or jpeg from the camera
-        _formData = FormSubmission(
-          nama: _formData.nama,
-          email: _formData.email,
-          nohp: _formData.nohp,
-          uraian: _formData.uraian,
-          link: _formData.link,
-          foto: _selectedFile?.path,
-          createdAt: _formData.createdAt, // Retain the original createdAt
-        );
-      });
+      if (image != null) {
+        setState(() {
+          _selectedFile = File(image.path);
+          _fileType = 'jpg'; // Assume it's a jpg or jpeg from the camera
+          _formData = FormSubmission(
+            nama: _formData.nama,
+            email: _formData.email,
+            nohp: _formData.nohp,
+            uraian: _formData.uraian,
+            link: _formData.link,
+            foto: _selectedFile?.path,
+            createdAt: _formData.createdAt, // Retain the original createdAt
+          );
+        });
+      }
     }
+  }
+
+  // Request storage permission
+  Future<bool> _requestStoragePermission() async {
+    final status = await Permission.storage.request();
+    return status.isGranted;
+  }
+
+  // Request camera permission
+  Future<bool> _requestCameraPermission() async {
+    final status = await Permission.camera.request();
+    return status.isGranted;
   }
 
   Widget _buildFilePreview() {

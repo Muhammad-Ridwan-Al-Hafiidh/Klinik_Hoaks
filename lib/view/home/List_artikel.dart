@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:klinik_hoaks/animation/src/searchbar.dart';
 import 'package:klinik_hoaks/models/search.dart';
 import 'package:klinik_hoaks/view/home/webview.dart';
+import 'package:lottie/lottie.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ListArtikel extends StatefulWidget {
@@ -215,7 +216,7 @@ void _launchURL(String slugPath) {
                     return Center(child: Text('No articles found'));
                   } else {
                     return _displayedArticles.isEmpty
-                        ? Center(child: Text('No articles match your criteria'))
+                        ? Lottie.asset('assets/vector/tiket_handle.json',repeat: false,)
                         : ListView.builder(
                             itemCount: _displayedArticles.length,
                             itemBuilder: (context, index) {

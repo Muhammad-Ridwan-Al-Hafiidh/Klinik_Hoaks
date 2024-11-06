@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 import 'package:klinik_hoaks/animation/src/searchbar.dart';
-import 'package:url_launcher/url_launcher.dart'; // Add this import for launching URLs
+import 'package:url_launcher/url_launcher.dart';
 
 class Tiket extends StatefulWidget {
   const Tiket({super.key});
@@ -71,12 +72,13 @@ class _TiketState extends State<Tiket> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Center(
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   padding: EdgeInsets.all(16),
@@ -88,57 +90,77 @@ class _TiketState extends State<Tiket> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedOpacity(
-                      opacity: _isSearchBarOpen ? 0.0 : 1.0,
-                      duration: Duration(milliseconds: 200),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 8, left: 16),
-                        child: Text(
-                          'Masukkan No Tiket Anda',
-                          style: TextStyle(fontSize: 16),
+                Container(
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color:  Color.fromARGB(255, 0, 131, 116).withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(10)
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedOpacity(
+                        opacity: _isSearchBarOpen ? 0.0 : 1.0,
+                        duration: Duration(milliseconds: 200),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2, left: 16),
+                          child: Text(
+                            'Masukkan No Tiket Anda',
+                            style: TextStyle(fontSize: 16,color: Colors.white),
+                          ),
                         ),
                       ),
-                    ),
-                    SearchBarAnimation(
-                      textEditingController: _ticketController,
-                      isOriginalAnimation: true,
-                      enableKeyboardFocus: true,
-                      onExpansionComplete: () {
-                        setState(() {
-                          _isSearchBarOpen = true;
-                        });
-                      },
-                      onCollapseComplete: () {
-                        setState(() {
-                          _isSearchBarOpen = false;
-                        });
-                      },
-                      onPressButton: (isSearchBarOpens) {
-                        if (!isSearchBarOpens && _ticketController.text.isNotEmpty) {
-                          _fetchTicketData(_ticketController.text);
-                        }
-                      },
-                      trailingWidget: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: Colors.black,
+                      SearchBarAnimation(
+                        textEditingController: _ticketController,
+                        isOriginalAnimation: true,
+                        enableKeyboardFocus: true,
+                        onExpansionComplete: () {
+                          setState(() {
+                            _isSearchBarOpen = true;
+                          });
+                        },
+                        onCollapseComplete: () {
+                          setState(() {
+                            _isSearchBarOpen = false;
+                          });
+                        },
+                        onPressButton: (isSearchBarOpens) {
+                          // Trigger search only if search bar is closed and there is text to search
+                          if (!isSearchBarOpens &&
+                              _ticketController.text.isNotEmpty) {
+                            _fetchTicketData(_ticketController.text);
+                          }
+                        },
+                        onFieldSubmitted: (value) {
+                          // Trigger search on keyboard submission
+                          if (value.isNotEmpty) {
+                            _fetchTicketData(value);
+                          }
+                        },
+                        trailingWidget: GestureDetector(
+                          onTap: () {
+                            _ticketController.clear();
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                        secondaryButtonWidget: const Icon(
+                          Icons.arrow_back,
+                          size: 20,
+                          color: Colors.black,
+                        ),
+                        buttonWidget: const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Colors.black,
+                        ),
+                        hintText: 'Masukkan Tiket Valid',
                       ),
-                      secondaryButtonWidget: const Icon(
-                        Icons.close,
-                        size: 20,
-                        color: Colors.black,
-                      ),
-                      buttonWidget: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: Colors.black,
-                      ),
-                      hintText: 'Masukkan Tiket Valid',
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 SizedBox(height: 20),
                 _isLoading
@@ -148,33 +170,47 @@ class _TiketState extends State<Tiket> {
                             width: screenWidth * 1.7,
                             height: screenHeight * 0.4, // Adjust height if necessary
                             child: Card(
-                              color: const Color.fromARGB(255, 250, 252, 250).withOpacity(0.5),
+                              color: const Color.fromARGB(255, 250, 252, 250)
+                                  .withOpacity(0.5),
                               child: Padding(
                                 padding: EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('No Tiket: ${_ticketData!['tiket_no'] ?? 'Data tidak tersedia'}'),
-                                    Text('Nama: ${_ticketData!['nama'] ?? 'Data tidak tersedia'}'),
-                                    Text('Uraian: ${_ticketData!['uraian'] ?? 'Data tidak tersedia'}'),
-                                    Text('Link: ${_ticketData!['link'] ?? 'Data tidak tersedia'}'),
+                                    Text(
+                                        'No Tiket: ${_ticketData!['tiket_no'] ?? 'Data tidak tersedia'}'),
+                                    Text(
+                                        'Nama: ${_ticketData!['nama'] ?? 'Data tidak tersedia'}'),
+                                    Text(
+                                        'Uraian: ${_ticketData!['uraian'] ?? 'Data tidak tersedia'}'),
+                                    Text(
+                                        'Link: ${_ticketData!['link'] ?? 'Data tidak tersedia'}'),
                                     if (_ticketData!['foto'] != null)
                                       InkWell(
-                                        onTap: () => _launchURL(_ticketData!['foto']),
+                                        onTap: () =>
+                                            _launchURL(_ticketData!['foto']),
                                         child: Text(
                                           'Lihat Foto Pendukung',
-                                          style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                          style: TextStyle(
+                                              color: Colors.blue,
+                                              decoration:
+                                                  TextDecoration.underline),
                                         ),
                                       )
                                     else
                                       Text('Tidak ada foto/gambar pendukung'),
-                                    Text('Jawaban: ${_ticketData!['jawaban'] ?? 'Belum ada jawaban, mohon ditunggu 1x24 jam.'}'),
+                                    Text(
+                                        'Jawaban: ${_ticketData!['jawaban'] ?? 'Belum ada jawaban, mohon ditunggu 1x24 jam.'}'),
                                   ],
                                 ),
                               ),
                             ),
                           )
-                        : Text('Tidak ada data ditemukan'),
+                        : Column(
+                          children: [
+                            Lottie.asset('assets/vector/tiket_handle.json',repeat: false,),
+                          ],
+                        ),
                 SizedBox(height: 20),
               ],
             ),

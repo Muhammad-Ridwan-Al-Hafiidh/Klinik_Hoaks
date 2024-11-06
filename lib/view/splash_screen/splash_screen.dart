@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    margin: EdgeInsets.symmetric(vertical: 20),
+                    margin: const EdgeInsets.symmetric(vertical: 20),
                     // Changed from MainAxisAlignment to margin
                     child: Image.asset(
                       'assets/logo_provinsi_jawa_timur.png', width: 150, height: 150,
@@ -82,8 +82,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 20),
                   // spacing between logo and "Your story became my apprentice" text
-                  Center(
-                    child: const Text(
+                  const Center(
+                    child: Text(
                       'Aplikasi Kominfo Untuk Memberantas Informasi Hoaks',
                       textAlign: TextAlign.center,
                       style: TextStyle(

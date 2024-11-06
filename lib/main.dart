@@ -4,14 +4,15 @@ import 'package:connectivity/connectivity.dart';
 import 'package:klinik_hoaks/view/form/form_setting/form_validasi.dart';
 import 'package:klinik_hoaks/view/splash_screen/splash_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<bool> checkInternetConnection() async {
   var connectivityResult = await Connectivity().checkConnectivity();
   return connectivityResult != ConnectivityResult.none;
 }
 
+
 void main() async {
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => FormValidasi(),
@@ -20,11 +21,13 @@ void main() async {
   );
 }
 
+
 class KlinikHoaks extends StatelessWidget {
   const KlinikHoaks({super.key});
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<bool>(
